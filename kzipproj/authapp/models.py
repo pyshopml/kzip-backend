@@ -10,7 +10,6 @@ class UserManager(BaseUserManager):
         """
         Creates and saves a User with the given email and password.
         """
-        # now = timezone.now()
         if not email:
             raise ValueError('The given email must be set')
         email = self.normalize_email(email)
@@ -24,11 +23,17 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(self, email, password=None, **extra_fields):
-        return self._create_user(email, password, False, False, False,
+        is_superuser = False
+        is_active = True
+        is_admin = False
+        return self._create_user(email, password, is_superuser, is_active, is_admin,
                                  **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        return self._create_user(email, password, True, True, True,
+        is_superuser = True
+        is_active = True
+        is_admin = True
+        return self._create_user(email, password, is_superuser, is_active, is_admin,
                                  **extra_fields)
 
 
