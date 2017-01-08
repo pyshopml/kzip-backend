@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 
 
-class Comment(models.Model):
+class Publication(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name='Пользователь',
@@ -12,7 +12,7 @@ class Comment(models.Model):
         'Название',
         max_length=255,
     )
-    comment = models.TextField(
+    text = models.TextField(
         'Отзыв',
     )
     create_date = models.DateTimeField(

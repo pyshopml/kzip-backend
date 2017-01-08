@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authapp',
     'kzip',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
