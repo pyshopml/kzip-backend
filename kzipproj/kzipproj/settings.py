@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'authapp',
+    'users',
     'kzip',
 ]
 
@@ -135,4 +135,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-AUTH_USER_MODEL = 'authapp.ExtUser'
+AUTH_USER_MODEL = 'users.ExtUser'
