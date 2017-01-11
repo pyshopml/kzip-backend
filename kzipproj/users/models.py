@@ -24,7 +24,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         is_superuser = False
-        is_active = True
+        is_active = False
         is_admin = False
         return self._create_user(email, password, is_superuser, is_active, is_admin,
                                  **extra_fields)
@@ -57,7 +57,7 @@ class ExtUser(AbstractBaseUser, PermissionsMixin):
     )
     is_active = models.BooleanField(
         'Активен',
-        default=True
+        default=False
     )
     is_admin = models.BooleanField(
         'Доступ в админку',
