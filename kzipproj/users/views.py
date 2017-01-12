@@ -1,17 +1,14 @@
-from django.contrib.auth.tokens import default_token_generator
-from rest_framework import generics
 from rest_framework import response
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.generics import GenericAPIView, CreateAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny
 
 from .permissions import IsOwnerOrReadOnly
-from .serializers import UserSerializer, PasswdResetSerializer, PasswordResetConfirmSerializer, ActivationSerializer
+from .serializers import *
 from .models import ExtUser
 from .utils.emails import UserPasswordResetEmail, UserActivationEmail, UserConfirmationEmail
-from .utils.utils import ActionViewMixin
 
 
 class UserCreate(CreateAPIView):
@@ -32,7 +29,7 @@ class UserCreate(CreateAPIView):
         email.send()
 
 
-class UserDetail(generics.RetrieveUpdateAPIView):
+class UserDetail(RetrieveUpdateAPIView):
     """
     View, Update User
     """
@@ -42,7 +39,7 @@ class UserDetail(generics.RetrieveUpdateAPIView):
     permission_classes = (IsOwnerOrReadOnly,)
 
 
-class PasswordReset(ActionViewMixin, GenericAPIView):
+class PasswordReset(GenericAPIView):
     """
     Reset password
     """
@@ -50,7 +47,9 @@ class PasswordReset(ActionViewMixin, GenericAPIView):
     serializer_class = PasswdResetSerializer
     permission_classes = (AllowAny,)
 
-    def _action(self, serializer):
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         user = self.get_user(serializer.data['email'])
         self.send_password_reset_email(user)
         return response.Response(status=status.HTTP_204_NO_CONTENT)
@@ -65,7 +64,7 @@ class PasswordReset(ActionViewMixin, GenericAPIView):
         email.send()
 
 
-class PasswordResetConfirmView(ActionViewMixin, generics.GenericAPIView):
+class PasswordResetConfirmView(GenericAPIView):
     """
     Use this endpoint to finish reset password process.
     """
@@ -73,16 +72,23 @@ class PasswordResetConfirmView(ActionViewMixin, generics.GenericAPIView):
     permission_classes = (AllowAny,)
     token_generator = default_token_generator
 
-    def _action(self, serializer):
+    def get(self, request, *args, **kwargs):
+        serializer = UidAndTokenSerializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         serializer.user.set_password(serializer.data['new_password'])
         serializer.user.save()
         email_factory = UserConfirmationEmail.from_request(self.request, user=serializer.user)
         email = email_factory.create()
         email.send()
-        return response.Response(status=status.HTTP_205_RESET_CONTENT)
+        return response.Response(status=status.HTTP_202_ACCEPTED)
 
 
-class ActivationView(ActionViewMixin, generics.GenericAPIView):
+class ActivationView(GenericAPIView):
     """
     Use this endpoint to activate user account.
     """
@@ -92,6 +98,11 @@ class ActivationView(ActionViewMixin, generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
+        return self._action(serializer)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return self._action(serializer)
 

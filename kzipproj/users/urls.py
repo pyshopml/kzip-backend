@@ -1,14 +1,14 @@
 
 from django.conf.urls import url, include
-from rest_framework import routers
+# from rest_framework import routers
 
 from .views import *
 
-router = routers.DefaultRouter()
+# router = routers.DefaultRouter()
 # router.register(r'users', UserViewSet)
 
 urlpatterns = [
-    url(r'^register/$', UserCreate.as_view(), name='register'),
+    url(r'^account/register/$', UserCreate.as_view(), name='register'),
     url(r'^account/activate/$', ActivationView.as_view(), name='activation'),
     url(r'^password/reset/$', PasswordReset.as_view(), name='password_reset'),
     url(r'^password/reset/confirm/$',

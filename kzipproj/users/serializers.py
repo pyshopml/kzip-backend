@@ -1,5 +1,7 @@
 from rest_framework import exceptions
 from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework.fields import empty
 
 from .utils.utils import decode_uid
 from .models import ExtUser
@@ -8,7 +10,7 @@ from .models import ExtUser
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExtUser
-        fields = ('email', 'name', 'password')
+        fields = ('email', 'name', 'password',)
         extra_kwargs = {'password': {'write_only': True, }}
 
     def create(self, validated_data):
@@ -19,23 +21,6 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-
-    def update(self, user, validated_data):
-        user.name = validated_data['name']
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
-
-
-class UserUpdateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(style={'input_type': 'password'})
-
-    class Meta:
-        model = ExtUser
-        fields = ('email', 'name', 'password')
-        extra_kwargs = {'password': {'write_only': True},
-                        'email': {'read_only': True}
-                        }
 
     def update(self, user, validated_data):
         user.name = validated_data['name']
@@ -105,7 +90,7 @@ class UidAndTokenSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         attrs = super(UidAndTokenSerializer, self).validate(attrs)
-        if not self.context['view'].token_generator.check_token(self.user, attrs['token']):
+        if not default_token_generator.check_token(self.user, attrs['token']):
             raise serializers.ValidationError(self.error_messages['invalid_token'])
         return attrs
 
