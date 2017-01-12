@@ -69,13 +69,9 @@ class PasswordResetConfirmView(ActionViewMixin, generics.GenericAPIView):
     """
     Use this endpoint to finish reset password process.
     """
+    serializer_class = PasswordResetConfirmSerializer
     permission_classes = (AllowAny,)
     token_generator = default_token_generator
-
-    def get_serializer_class(self, *args, **kwargs):
-        kwargs['context'] = self.get_serializer_context()
-
-        return PasswordResetConfirmSerializer
 
     def _action(self, serializer):
         serializer.user.set_password(serializer.data['new_password'])
@@ -83,7 +79,7 @@ class PasswordResetConfirmView(ActionViewMixin, generics.GenericAPIView):
         email_factory = UserConfirmationEmail.from_request(self.request, user=serializer.user)
         email = email_factory.create()
         email.send()
-        return response.Response(status=status.HTTP_204_NO_CONTENT)
+        return response.Response(status=status.HTTP_205_RESET_CONTENT)
 
 
 class ActivationView(ActionViewMixin, generics.GenericAPIView):
@@ -93,6 +89,11 @@ class ActivationView(ActionViewMixin, generics.GenericAPIView):
     serializer_class = ActivationSerializer
     permission_classes = (AllowAny,)
     token_generator = default_token_generator
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
+        return self._action(serializer)
 
     def _action(self, serializer):
         serializer.user.is_active = True

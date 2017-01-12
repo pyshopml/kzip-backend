@@ -1,4 +1,4 @@
 {% block reset_link %}
-{{ protocol }}://{{ domain }}/{{ url }}?uid={uid}&token={token}
+{{ protocol }}://{{ domain }}/{{ url }}?uid={{uid}}&token={{token}}
 {% endblock %}
 

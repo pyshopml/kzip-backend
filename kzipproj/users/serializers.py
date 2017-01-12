@@ -122,7 +122,7 @@ class PasswordResetConfirmSerializer(UidAndTokenSerializer, PasswordSerializer):
 
 class ActivationSerializer(UidAndTokenSerializer):
     default_error_messages = {
-        'stale_token': 'Token invalid',
+        'stale_token': 'Token invalid or user already activated',
     }
 
     def validate(self, attrs):
