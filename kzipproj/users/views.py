@@ -3,14 +3,17 @@ from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveUpdateAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.views import APIView
 
+from django.contrib.auth import authenticate, login, logout
 from .signals import senders
 from .permissions import IsOwnerOrReadOnly
 from .serializers import *
 from .models import ExtUser
 from .utils.emails import UserPasswordResetEmail, UserActivationEmail, UserConfirmationEmail
 from .signals.receivers import send_success_mail
+
 
 class UserCreate(CreateAPIView):
     """
@@ -112,3 +115,59 @@ class ActivationView(GenericAPIView):
         senders.confim_email.send(
             sender=self.__class__, user=serializer.user, request=self.request)
         return response.Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class Login(GenericAPIView):
+    """
+    Use this endpoint to login user .
+    """
+    serializer_class = UserSerializer
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        serializer = self.serializer_class()
+        return response.Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+    def post(self, request):
+        data = request.POST
+        email = data.get('email', None)
+        password = data.get('password', None)
+
+        user = authenticate(email=email, password=password)
+
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                serializer = self.serializer_class(user)
+                return response.Response(serializer.data)
+            else:
+                return response.Response({
+                    'status': 'Unauthorized',
+                    'message': 'This account has been disabled.'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return response.Response({
+                'status': 'Unauthorized',
+                'message': 'Invalid credentials.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class Logout(APIView):
+    """
+    Use this endpoint to logout user .
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        logout(request)
+        return response.Response({
+            'status': 'Logout Success',
+        },
+            status=status.HTTP_200_OK)
+
+    def post(self, request):
+            logout(request)
+            return response.Response({
+                'status': 'Logout Success',
+            },
+                status=status.HTTP_200_OK)
