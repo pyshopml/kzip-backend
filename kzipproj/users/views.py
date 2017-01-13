@@ -5,11 +5,12 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny
 
+from .signals import senders
 from .permissions import IsOwnerOrReadOnly
 from .serializers import *
 from .models import ExtUser
 from .utils.emails import UserPasswordResetEmail, UserActivationEmail, UserConfirmationEmail
-
+from .signals.receivers import send_success_mail
 
 class UserCreate(CreateAPIView):
     """
@@ -82,9 +83,8 @@ class PasswordResetConfirmView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.user.set_password(serializer.data['new_password'])
         serializer.user.save()
-        email_factory = UserConfirmationEmail.from_request(self.request, user=serializer.user)
-        email = email_factory.create()
-        email.send()
+        senders.confim_email.send(
+            sender=self.__class__, user=serializer.user, request=self.request)
         return response.Response(status=status.HTTP_202_ACCEPTED)
 
 
@@ -109,7 +109,6 @@ class ActivationView(GenericAPIView):
     def _action(self, serializer):
         serializer.user.is_active = True
         serializer.user.save()
-        email_factory = UserConfirmationEmail.from_request(self.request, user=serializer.user)
-        email = email_factory.create()
-        email.send()
+        senders.confim_email.send(
+            sender=self.__class__, user=serializer.user, request=self.request)
         return response.Response(status=status.HTTP_204_NO_CONTENT)
