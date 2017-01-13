@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from kzip.models import Publication
+from .models import Publication
 
 
-class PublicationSerializer(serializers.HyperlinkedModelSerializer):
+class PublicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Publication
-        fields = ('user', 'title', 'text', 'create_date')
+        # fields = ('id', 'title', 'text', 'create_date')
+        fields = ('id', 'user', 'title', 'text', 'create_date')
