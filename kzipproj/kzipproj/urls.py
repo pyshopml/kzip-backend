@@ -19,4 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include("kzip.urls")),
+    url(r'^auth/', include("users.urls")),
 ]
