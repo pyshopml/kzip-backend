@@ -38,6 +38,10 @@ class UserManager(BaseUserManager):
 
 
 class ExtUser(AbstractBaseUser, PermissionsMixin):
+    # тоже скорее вопрос вкуса, но кодстайл джанго позволяет длинные строки, не надо писать поле на несколько строк
+    # специально. В реальности не редкость модели с 10 или 30 полями, представляете сколько вы мотать будете чтобы
+    # прочесть только поля такой модели?
+    # смотрите код самого джанго - AbstractBaseUser - там так не делают.
     email = models.EmailField(
         'Электронная почта',
         max_length=255,
@@ -76,6 +80,8 @@ class ExtUser(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         full_name = "{} {} {}".format(self.id, self.email, self.name)
+        # неиспользуемая переменная. вообще у вас есть места с неиспользуемыми переменными и закомментированным кодом -
+        # старайтесь так не делать.
         return self.email
 
     def has_perm(self, perm, obj=None):

@@ -114,6 +114,8 @@ class ActivationView(GenericAPIView):
         serializer.user.save()
         senders.confim_email.send(
             sender=self.__class__, user=serializer.user, request=self.request)
+        # необоснованное использование сигналов - в данном случае это обязательное действие, его можно просто вызвать
+        # как функцию.
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -148,7 +150,11 @@ class Login(GenericAPIView):
         else:
             return response.Response({
                 'status': 'Unauthorized',
+                # если статус планируется анализировать скриптом на фронтенде, а не показывать пользователю, то
+                # выносите в константы, например в .consts.py
                 'message': 'Invalid credentials.'
+                # здесь больше вопрос привычек, но я бы рекоммендовал сообщения также вынести в файл messages.py
+                # данного приложения.
             }, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -164,8 +170,10 @@ class Logout(APIView):
             'status': 'Logout Success',
         },
             status=status.HTTP_200_OK)
+    # здесь очень странное форматирование, я бы не рекоммендовал так делать.
 
     def post(self, request):
+            #  здесь вообще с отступом непонятно, почему 8 а не 4?
             logout(request)
             return response.Response({
                 'status': 'Logout Success',

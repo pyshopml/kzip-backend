@@ -12,4 +12,5 @@ class PublicationViewSet(viewsets.ModelViewSet):
     queryset = Publication.objects.all().order_by('-create_date')
     serializer_class = PublicationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    # разрешения: исходя из написанного, авторизованный пользователь может редактировать любую публикацию. Это верно?
     # permission_classes = (AllowAny,)
