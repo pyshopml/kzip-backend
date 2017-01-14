@@ -15,9 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from .views import ApiRoot
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^', include("kzip.urls")),
+    url(r'^api/', include("kzip.urls")),
     url(r'^auth/', include("users.urls")),
+]
+
+urlpatterns += [
+    url(r'^$', ApiRoot.as_view(urlpatterns=urlpatterns, app_namespace='api_v1'), name='api_root')
 ]
