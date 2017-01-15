@@ -6,7 +6,7 @@ pub_router = routers.DefaultRouter()
 pub_router.register(r'publications', views.PublicationViewSet)
 
 urlpatterns = [
-    url(r'^', include(pub_router.urls)),
+    url(r'^', include(pub_router.urls, namespace='publications')),
 ]
 
 

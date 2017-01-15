@@ -22,11 +22,11 @@ class ApiRoot(APIView):
 
         def api_url(namespace, name):
             try:
-                return reverse('%s:%s' % (namespace, name), args=[1], request=request, format=format)
+                return reverse('%s:%s' % (namespace, name), request=request, format=format)
             except NoReverseMatch:
                 return None
 
-        def parse_urlpatterns(urlpatterns):
+        def parse_urlpatterns(urlpatterns, namespace):
             data = OrderedDict()
 
             for urlpattern in urlpatterns:
@@ -34,17 +34,12 @@ class ApiRoot(APIView):
                     continue
 
                 if isinstance(urlpattern, RegexURLResolver):
-                    data[urlpattern.namespace] = parse_urlpatterns(urlpattern.url_patterns)
+                    data[urlpattern.namespace] = parse_urlpatterns(urlpattern.url_patterns, urlpattern.namespace)
                 else:
-                    if hasattr(urlpatterns, 'namespace'):
-                        namespace = urlpatterns.namespace
-                    else:
-                        namespace = self.app_namespace
-
                     data[urlpattern.name] = api_url(namespace, urlpattern.name)
 
             return data
 
-        data = parse_urlpatterns(self.urlpatterns)
+        data = parse_urlpatterns(self.urlpatterns, self.app_namespace)
 
         return Response(data)
