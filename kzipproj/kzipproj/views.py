@@ -20,9 +20,9 @@ class ApiRoot(APIView):
         assert self.urlpatterns is not None, "Provide urlpatterns argument if you want to use this view!"
         assert self.app_namespace is not None, "Provide app_namespace argument if you want to use this view!"
 
-        def api_url(name):
+        def api_url(namespace, name):
             try:
-                return reverse('%s:%s' % (self.app_namespace, name), request=request, format=format)
+                return reverse('%s:%s' % (namespace, name), args=[1], request=request, format=format)
             except NoReverseMatch:
                 return None
 
@@ -34,9 +34,15 @@ class ApiRoot(APIView):
                     continue
 
                 if isinstance(urlpattern, RegexURLResolver):
-                    data[urlpattern.namespace] = api_url(urlpattern.namespace)
+                    data[urlpattern.namespace] = parse_urlpatterns(urlpattern.url_patterns)
                 else:
-                    data[urlpattern.name] = api_url(urlpattern.name)
+                    print(urlpatterns)
+                    if hasattr(urlpatterns, 'namespace'):
+                        namespace = urlpatterns.namespace
+                    else:
+                        namespace = self.app_namespace
+
+                    data[urlpattern.name] = api_url(namespace, urlpattern.name)
 
             return data
 
