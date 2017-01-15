@@ -36,7 +36,6 @@ class ApiRoot(APIView):
                 if isinstance(urlpattern, RegexURLResolver):
                     data[urlpattern.namespace] = parse_urlpatterns(urlpattern.url_patterns)
                 else:
-                    print(urlpatterns)
                     if hasattr(urlpatterns, 'namespace'):
                         namespace = urlpatterns.namespace
                     else:
