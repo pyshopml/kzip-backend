@@ -3,7 +3,8 @@ from .models import Publication
 
 
 class PublicationSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.get_full_name')
+
     class Meta:
         model = Publication
-        # fields = ('id', 'title', 'text', 'create_date')
         fields = ('id', 'user', 'title', 'text', 'create_date')

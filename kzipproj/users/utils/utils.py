@@ -8,10 +8,3 @@ def encode_uid(pk):
 
 def decode_uid(pk):
     return force_text(urlsafe_base64_decode(pk))
-
-
-# class ActionViewMixin(object):
-#     def post(self, request):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         return self._action(serializer)

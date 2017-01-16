@@ -38,35 +38,12 @@ class UserManager(BaseUserManager):
 
 
 class ExtUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(
-        'Электронная почта',
-        max_length=255,
-        unique=True,
-
-    )
-    name = models.CharField(
-        'Имя',
-        max_length=80,
-        null=True,
-        blank=True
-    )
-    date_joined = models.DateField(
-        'Создан',
-        auto_now_add=True,
-        editable=False,
-    )
-    is_active = models.BooleanField(
-        'Активен',
-        default=False
-    )
-    is_admin = models.BooleanField(
-        'Доступ в админку',
-        default=False
-    )
-    is_superuser = models.BooleanField(
-        'Суперпользователь',
-        default=False
-    )
+    email = models.EmailField('Электронная почта', max_length=255, unique=True)
+    name = models.CharField('Имя', max_length=80, null=True, blank=True)
+    date_joined = models.DateField('Создан', auto_now_add=True, editable=False)
+    is_active = models.BooleanField('Активен', default=False)
+    is_admin = models.BooleanField('Доступ в админку', default=False)
+    is_superuser = models.BooleanField('Суперпользователь', default=False)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """
@@ -76,7 +53,7 @@ class ExtUser(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         full_name = "{} {} {}".format(self.id, self.email, self.name)
-        return self.email
+        return full_name
 
     def has_perm(self, perm, obj=None):
         return True

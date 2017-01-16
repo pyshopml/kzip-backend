@@ -7,12 +7,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from django.contrib.auth import authenticate, login, logout
-from .signals import senders
-from .permissions import IsOwnerOrReadOnly
+
+from . import consts
+from .permissions import IsSelfOrReadOnly
 from .serializers import *
 from .models import ExtUser
 from .utils.emails import UserPasswordResetEmail, UserActivationEmail, UserConfirmationEmail
-from .signals.receivers import send_success_mail
 
 
 class UserCreate(CreateAPIView):
@@ -28,8 +28,7 @@ class UserCreate(CreateAPIView):
         self.send_activation_email(user)
 
     def send_activation_email(self, user):
-        email_factory = UserActivationEmail.from_request(self.request, user=user)
-        email = email_factory.create()
+        email = UserActivationEmail.from_request(self.request, user)
         email.send()
 
 
@@ -40,7 +39,7 @@ class UserDetail(RetrieveUpdateAPIView):
     queryset = ExtUser.objects.all()
     serializer_class = UserSerializer
     authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsSelfOrReadOnly,)
 
 
 class PasswordReset(GenericAPIView):
@@ -55,17 +54,13 @@ class PasswordReset(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = self.get_user(serializer.data['email'])
-        self.send_password_reset_email(user)
+        email = UserPasswordResetEmail.from_request(self.request, user)
+        email.send()
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_user(self, email):
         user = ExtUser.objects.get(email=email)
         return user
-
-    def send_password_reset_email(self, user):
-        email_factory = UserPasswordResetEmail.from_request(self.request, user=user)
-        email = email_factory.create()
-        email.send()
 
 
 class PasswordResetConfirmView(GenericAPIView):
@@ -84,10 +79,11 @@ class PasswordResetConfirmView(GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.user.set_password(serializer.data['new_password'])
-        serializer.user.save()
-        senders.confim_email.send(
-            sender=self.__class__, user=serializer.user, request=self.request)
+        user = serializer.user
+        user.set_password(serializer.data['new_password'])
+        user.save()
+        email = UserConfirmationEmail.from_request(request, user)
+        email.send()
         return response.Response(status=status.HTTP_202_ACCEPTED)
 
 
@@ -110,10 +106,11 @@ class ActivationView(GenericAPIView):
         return self._action(serializer)
 
     def _action(self, serializer):
-        serializer.user.is_active = True
-        serializer.user.save()
-        senders.confim_email.send(
-            sender=self.__class__, user=serializer.user, request=self.request)
+        user = serializer.user
+        user.is_active = True
+        user.save()
+        email = UserConfirmationEmail.from_request(self.request, serializer.user)
+        email.send()
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -142,13 +139,11 @@ class Login(GenericAPIView):
                 return response.Response(serializer.data)
             else:
                 return response.Response({
-                    'status': 'Unauthorized',
-                    'message': 'This account has been disabled.'
+                    'message': consts.INACTIVE_ACCOUNT
                 }, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return response.Response({
-                'status': 'Unauthorized',
-                'message': 'Invalid credentials.'
+                'message': consts.INVALID_CREDENTIALS
             }, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -160,14 +155,8 @@ class Logout(APIView):
 
     def get(self, request):
         logout(request)
-        return response.Response({
-            'status': 'Logout Success',
-        },
-            status=status.HTTP_200_OK)
+        return response.Response(status=status.HTTP_200_OK)
 
     def post(self, request):
-            logout(request)
-            return response.Response({
-                'status': 'Logout Success',
-            },
-                status=status.HTTP_200_OK)
+        logout(request)
+        return response.Response(status=status.HTTP_200_OK)

@@ -5,6 +5,7 @@ from rest_framework.fields import empty
 
 from .utils.utils import decode_uid
 from .models import ExtUser
+from . import consts
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -34,7 +35,7 @@ class PasswordSerializer(serializers.Serializer):
     re_new_password = serializers.CharField(style={'input_type': 'password'})
 
     default_error_messages = {
-        'password_mismatch': 'The two password fields didn\'t match.',
+        'password_mismatch': consts.PASSWORD_MISMATCH,
     }
 
     def validate(self, attrs):
@@ -55,7 +56,7 @@ class PasswdResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     default_error_messages = {
-        'email_not_found': 'User with given email does not exist.'
+        'email_not_found': consts.EMAIL_NOT_FOUND
     }
 
     def validate_email(self, value):
@@ -76,8 +77,8 @@ class UidAndTokenSerializer(serializers.Serializer):
     token = serializers.CharField()
 
     default_error_messages = {
-        'invalid_token': 'Invalid token for given user.',
-        'invalid_uid': 'Invalid user id or user not exist.',
+        'invalid_token': consts.INVALID_TOKEN,
+        'invalid_uid': consts.INVALID_UID,
     }
 
     def validate_uid(self, value):
@@ -107,7 +108,7 @@ class PasswordResetConfirmSerializer(UidAndTokenSerializer, PasswordSerializer):
 
 class ActivationSerializer(UidAndTokenSerializer):
     default_error_messages = {
-        'stale_token': 'Token invalid or user already activated',
+        'stale_token': consts.STALE_TOKEN,
     }
 
     def validate(self, attrs):

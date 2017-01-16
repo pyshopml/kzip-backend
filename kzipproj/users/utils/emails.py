@@ -41,15 +41,19 @@ class UserEmailFactoryBase(object):
             protocol='https' if request.is_secure() else 'http',
         )
 
-    def create(self, ):
+    def send(self, ):
         context = self.get_context()
         subject = loader.render_to_string(self.subject_template_name, context)
         subject = ''.join(subject.splitlines())
 
         plain_body = loader.render_to_string(self.plain_body_template_name, context)
-        email_message = EmailMessage(subject, plain_body, self.from_email, [self.user.email])
+        message = {
+            'subject': subject,
+            'message': plain_body,
+            'from_email': self.from_email,
 
-        return email_message
+        }
+        self.user.email_user(**message)
 
 
 class UserPasswordResetEmail(UserEmailFactoryBase):
