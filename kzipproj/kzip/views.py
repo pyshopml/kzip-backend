@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from .models import Publication
 from .serializers import PublicationSerializer
@@ -13,4 +13,6 @@ class PublicationViewSet(viewsets.ModelViewSet):
     serializer_class = PublicationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     # разрешения: исходя из написанного, авторизованный пользователь может редактировать любую публикацию. Это верно?
-    # permission_classes = (AllowAny,)
+    #
+    # разрешение AllowAny использовалось во время разработки приложения kzip без использования приложения users(как заглушка),
+    # строчку удалил.

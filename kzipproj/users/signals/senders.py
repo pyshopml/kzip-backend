@@ -6,5 +6,7 @@ from django.dispatch import Signal
 # password_changed = Signal(providing_args=["user", "request"])
 
 # Confirm mail
-confim_email = Signal(providing_args=['user', 'request'])
+confirm_email = Signal(providing_args=['user', 'request'])
 # внимательнее относитесь к орфографии: если не видно, поменяйте цвет спелл-чекера в настройках IDE.
+#
+# исправил

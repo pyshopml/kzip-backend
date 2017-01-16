@@ -11,7 +11,7 @@ from .signals import senders
 from .permissions import IsOwnerOrReadOnly
 from .serializers import *
 from .models import ExtUser
-from .utils.emails import UserPasswordResetEmail, UserActivationEmail, UserConfirmationEmail
+from .utils.emails import UserPasswordResetEmail, UserActivationEmail
 from .signals.receivers import send_success_mail
 
 
@@ -86,7 +86,7 @@ class PasswordResetConfirmView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.user.set_password(serializer.data['new_password'])
         serializer.user.save()
-        senders.confim_email.send(
+        senders.confirm_email.send(
             sender=self.__class__, user=serializer.user, request=self.request)
         return response.Response(status=status.HTTP_202_ACCEPTED)
 
@@ -112,10 +112,12 @@ class ActivationView(GenericAPIView):
     def _action(self, serializer):
         serializer.user.is_active = True
         serializer.user.save()
-        senders.confim_email.send(
+        senders.confirm_email.send(
             sender=self.__class__, user=serializer.user, request=self.request)
         # необоснованное использование сигналов - в данном случае это обязательное действие, его можно просто вызвать
         # как функцию.
+        #
+        # вобще хотел весь функционал отсылки эмейлов вынести в сигналы
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -152,6 +154,8 @@ class Login(GenericAPIView):
                 'status': 'Unauthorized',
                 # если статус планируется анализировать скриптом на фронтенде, а не показывать пользователю, то
                 # выносите в константы, например в .consts.py
+                #
+                # хотелось бы дополнителтно задать вопросы по этому и следующему замечанию на собрании.
                 'message': 'Invalid credentials.'
                 # здесь больше вопрос привычек, но я бы рекоммендовал сообщения также вынести в файл messages.py
                 # данного приложения.
@@ -168,14 +172,16 @@ class Logout(APIView):
         logout(request)
         return response.Response({
             'status': 'Logout Success',
-        },
-            status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
     # здесь очень странное форматирование, я бы не рекоммендовал так делать.
+    #
+    # исправил
 
     def post(self, request):
-            #  здесь вообще с отступом непонятно, почему 8 а не 4?
-            logout(request)
-            return response.Response({
-                'status': 'Logout Success',
-            },
-                status=status.HTTP_200_OK)
+        #  здесь вообще с отступом непонятно, почему 8 а не 4?
+        #
+        # исправил
+        logout(request)
+        return response.Response({
+            'status': 'Logout Success',
+        }, status=status.HTTP_200_OK)
