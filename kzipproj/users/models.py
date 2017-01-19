@@ -23,18 +23,20 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(self, email, password=None, **extra_fields):
-        is_superuser = False
-        is_active = False
-        is_admin = False
-        return self._create_user(email, password, is_superuser, is_active, is_admin,
-                                 **extra_fields)
+        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_active', False)
+        extra_fields.setdefault('is_admin', False)
+        return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        is_superuser = True
-        is_active = True
-        is_admin = True
-        return self._create_user(email, password, is_superuser, is_active, is_admin,
-                                 **extra_fields)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('is_admin', True)
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(email, password, **extra_fields)
 
 
 class ExtUser(AbstractBaseUser, PermissionsMixin):
@@ -52,7 +54,7 @@ class ExtUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def get_full_name(self):
-        full_name = "{} {} {}".format(self.id, self.email, self.name)
+        full_name = "{} {}".format(self.email, self.name)
         return full_name
 
     def has_perm(self, perm, obj=None):
@@ -70,7 +72,7 @@ class ExtUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
     def __str__(self):
-        return "{} {}".format(self.id, self.email)
+        return self.email
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
