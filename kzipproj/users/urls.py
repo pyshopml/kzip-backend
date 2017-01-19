@@ -6,6 +6,7 @@ from .views import *
 
 # router = routers.DefaultRouter()
 # router.register(r'users', UserViewSet)
+# urlpatterns = router.urls
 
 urlpatterns = [
     url(r'^account/register/$', UserCreate.as_view(), name='register'),
@@ -16,5 +17,5 @@ urlpatterns = [
     url(r'^user/(?P<pk>[0-9]+)/$', UserDetail.as_view(), name='user_detail'),
     url(r'^login/$', Login.as_view(), name='login'),
     url(r'^logout/$', Logout.as_view(), name='logout'),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
