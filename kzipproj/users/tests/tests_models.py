@@ -1,3 +1,4 @@
+from django.core import mail as mailbox
 from django.test import TestCase
 from ..models import ExtUser
 
@@ -8,7 +9,6 @@ class ExtUserTestCase(TestCase):
         self.user = ExtUser(email=self.email1, name=self.name1, password=self.password1)
 
     def test_ok_model_methods(self):
-
         self.assertEqual(self.user.get_full_name(), 'user1@gmail.com first')
         self.assertEqual(self.user.get_short_name(), self.email1)
 
@@ -34,4 +34,13 @@ class ExtUserTestCase(TestCase):
         self.assertTrue(user.is_active)
         self.assertTrue(user.is_staff)
         self.assertTrue(user.is_superuser)
+
+    def test_ok_send_user_mail(self):
+        ExtUser.objects.create(email='user4@gmail.com', name='fourth', password='qweasdzxc')
+        user = ExtUser.objects.get(email='user4@gmail.com')
+        user.email_user(subject='test134', message='tet_body134', from_email='test@ukr.net')
+        self.assertEqual(len(mailbox.outbox), 1)
+
+        self.assertEqual(mailbox.outbox[0].subject, 'test134')
+        self.assertEqual(mailbox.outbox[0].message, 'tet_body134')
 
