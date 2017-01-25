@@ -130,21 +130,25 @@ class Login(GenericAPIView):
         email = data.get('email', None)
         password = data.get('password', None)
 
-        user = authenticate(email=email, password=password)
-
-        if user is not None:
+        try:
+            user = ExtUser.objects.get(email=email)
             if user.is_active:
-                login(request, user)
-                serializer = self.serializer_class(user)
-                return response.Response(serializer.data)
+                user = authenticate(email=email, password=password)
             else:
                 return response.Response({
                     'message': consts.INACTIVE_ACCOUNT
                 }, status=status.HTTP_401_UNAUTHORIZED)
+        except ExtUser.DoesNotExist:
+            user = None
+
+        if user is not None:
+            login(request, user)
+            serializer = self.serializer_class(user)
+            return response.Response(serializer.data)
         else:
             return response.Response({
                 'message': consts.INVALID_CREDENTIALS
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Logout(APIView):
