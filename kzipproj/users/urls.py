@@ -6,6 +6,7 @@ from .views import *
 
 # router = routers.DefaultRouter()
 # router.register(r'users', UserViewSet)
+# urlpatterns = router.urls
 
 urlpatterns = [
     url(r'^account/register/$', UserCreate.as_view(), name='register'),
