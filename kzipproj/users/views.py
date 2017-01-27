@@ -122,8 +122,12 @@ class Login(GenericAPIView):
     permission_classes = (AllowAny,)
 
     def get(self, request):
+        """
+            :return serializer data.
+            May be removed
+        """
         serializer = self.serializer_class()
-        return response.Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+        return response.Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         data = request.POST

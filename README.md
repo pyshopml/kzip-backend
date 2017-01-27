@@ -6,3 +6,4 @@
 ##### django-filter 1.0.1
 ##### psycopg2-2.6.2-py3.4
 ##### nose 1.3.7
+##### factory-boy
