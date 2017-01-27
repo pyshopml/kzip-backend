@@ -5,19 +5,15 @@ from django.db import models
 
 
 class UserManager(BaseUserManager):
-    def _create_user(self, email, password,
-                     is_superuser, is_active, is_admin, **extra_fields):
+    def _create_user(self, email, password, **extra_fields):
         """
-        Creates and saves a User with the given email and password.
+            Common users creation
         """
         if not email:
             raise ValueError('The given email must be set')
         email = self.normalize_email(email)
-        user = self.model(email=email,
-                          is_active=is_active,
-                          is_superuser=is_superuser,
-                          is_admin=is_admin,
-                          **extra_fields)
+        user = self.model(email=email, **extra_fields)
+        password = password or None
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -25,16 +21,13 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', False)
         extra_fields.setdefault('is_active', False)
-        extra_fields.setdefault('is_admin', False)
+        extra_fields['is_admin'] = False
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('is_admin', True)
-
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        extra_fields['is_admin'] = True
 
         return self._create_user(email, password, **extra_fields)
 
@@ -48,9 +41,6 @@ class ExtUser(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField('Суперпользователь', default=False)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
-        """
-        Sends an email to this User.
-        """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def get_full_name(self):
@@ -63,9 +53,12 @@ class ExtUser(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         return True
 
-    # Требуется для админки
     @property
     def is_staff(self):
+        """
+            admin site required
+            :return: user is admin or not
+        """
         return self.is_admin
 
     def get_short_name(self):
