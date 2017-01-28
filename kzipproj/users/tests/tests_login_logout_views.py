@@ -54,7 +54,7 @@ class LoginViewTestCase(TestCase):
 
 class LogoutViewTestCase(TestCase):
     def setUp(self):
-        self.login_path = reverse('users:logout')
+        self.logout_path = reverse('users:logout')
         self.active_user_factory = ActiveUser
         self.TEST_USERS_PASSWORD = ActiveUser.get_test_user_password()
 
@@ -63,17 +63,26 @@ class LogoutViewTestCase(TestCase):
         is_login = self.client.login(email=user.email,
                                      password=self.TEST_USERS_PASSWORD)
         self.assertTrue(is_login)
-        self.assertIsNotNone(self.client.session.session_key)
-        response = self.client.get(self.login_path)
+        self.assertIn('_auth_user_id', self.client.session)
+        response = self.client.get(self.logout_path)
         self.assertEquals(response.status_code, 200)
-        self.assertIsNone(self.client.session.session_key)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_fail_non_auth_user_logout_get(self):
+        self.assertNotIn('_auth_user_id', self.client.session)
+        response = self.client.get(self.logout_path)
+        self.assertEquals(response.status_code, 403)
 
     def test_ok_user_logout_post(self):
         user = self.active_user_factory.create()
         is_login = self.client.login(email=user.email,
                                      password=self.TEST_USERS_PASSWORD)
         self.assertTrue(is_login)
-        self.assertIsNotNone(self.client.session.session_key)
-        response = self.client.post(self.login_path)
+        self.assertIn('_auth_user_id', self.client.session)
+        response = self.client.post(self.logout_path)
         self.assertEquals(response.status_code, 200)
-        self.assertIsNone(self.client.session.session_key)
+
+    def test_fail_non_auth_user_logout_post(self):
+        self.assertNotIn('_auth_user_id', self.client.session)
+        response = self.client.post(self.logout_path)
+        self.assertEquals(response.status_code, 403)
