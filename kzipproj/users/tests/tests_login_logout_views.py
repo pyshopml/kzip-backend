@@ -4,7 +4,6 @@ from rest_framework.test import APIRequestFactory
 
 from .factories import ActiveUser, UserFactoryBase
 from .. import consts
-from .constants import *
 
 
 class LoginViewTestCase(TestCase):
@@ -12,13 +11,14 @@ class LoginViewTestCase(TestCase):
         self.login_path = reverse('users:login')
         self.active_user_factory = ActiveUser
         self.user_factory = UserFactoryBase
+        self.TEST_USERS_PASSWORD = UserFactoryBase.get_test_user_password()
 
     def test_ok_login_successful(self):
         user = self.active_user_factory.create()
         response = self.client.post(path=self.login_path,
                                     data={
                                         'email': user.email,
-                                        'password': TEST_USERS_PASSWORD,
+                                        'password': self.TEST_USERS_PASSWORD,
                                     })
         self.assertEquals(response.status_code, 200)
         self.assertIn('_auth_user_id', self.client.session)
@@ -29,7 +29,7 @@ class LoginViewTestCase(TestCase):
         response = self.client.post(path=self.login_path,
                                     data={
                                         'email': user.email,
-                                        'password': TEST_USERS_PASSWORD,
+                                        'password': self.TEST_USERS_PASSWORD,
                                     })
         self.assertEquals(response.status_code, 401)
         self.assertNotIn('_auth_user_id', self.client.session)
@@ -55,6 +55,25 @@ class LoginViewTestCase(TestCase):
 class LogoutViewTestCase(TestCase):
     def setUp(self):
         self.login_path = reverse('users:logout')
+        self.active_user_factory = ActiveUser
+        self.TEST_USERS_PASSWORD = ActiveUser.get_test_user_password()
 
-    def test_ok_user_logout(self):
-        pass
+    def test_ok_user_logout_get(self):
+        user = self.active_user_factory.create()
+        is_login = self.client.login(email=user.email,
+                                     password=self.TEST_USERS_PASSWORD)
+        self.assertTrue(is_login)
+        self.assertIsNotNone(self.client.session.session_key)
+        response = self.client.get(self.login_path)
+        self.assertEquals(response.status_code, 200)
+        self.assertIsNone(self.client.session.session_key)
+
+    def test_ok_user_logout_post(self):
+        user = self.active_user_factory.create()
+        is_login = self.client.login(email=user.email,
+                                     password=self.TEST_USERS_PASSWORD)
+        self.assertTrue(is_login)
+        self.assertIsNotNone(self.client.session.session_key)
+        response = self.client.post(self.login_path)
+        self.assertEquals(response.status_code, 200)
+        self.assertIsNone(self.client.session.session_key)
