@@ -28,7 +28,7 @@ class UserCreate(CreateAPIView):
         self.send_activation_email(user)
 
     def send_activation_email(self, user):
-        email = UserActivationEmail.from_request(self.request, user)
+        email = UserActivationEmail.build(self.request, user)
         email.send()
 
 
@@ -54,7 +54,7 @@ class PasswordReset(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = self.get_user(serializer.data['email'])
-        email = UserPasswordResetEmail.from_request(self.request, user)
+        email = UserPasswordResetEmail.build(self.request, user)
         email.send()
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -82,7 +82,7 @@ class PasswordResetConfirmView(GenericAPIView):
         user = serializer.user
         user.set_password(serializer.data['new_password'])
         user.save()
-        email = UserConfirmationEmail.from_request(request, user)
+        email = UserConfirmationEmail.build(request, user)
         email.send()
         return response.Response(status=status.HTTP_202_ACCEPTED)
 
@@ -109,7 +109,7 @@ class ActivationView(GenericAPIView):
         user = serializer.user
         user.is_active = True
         user.save()
-        email = UserConfirmationEmail.from_request(self.request, serializer.user)
+        email = UserConfirmationEmail.build(self.request, serializer.user)
         email.send()
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
