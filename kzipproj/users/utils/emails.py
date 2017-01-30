@@ -12,15 +12,15 @@ class UserEmailFactoryBase(metaclass=ABCMeta):
     token_generator = default_token_generator
 
     @abstractproperty
-    def subject_template_name(self):
+    def subject_template(self):
         pass
 
     @abstractproperty
-    def plain_body_template_name(self):
+    def plain_body_template(self):
         pass
 
     @abstractproperty
-    def html_body_template_name(self):
+    def html_body_template(self):
         pass
 
     @abstractproperty
@@ -42,7 +42,6 @@ class UserEmailFactoryBase(metaclass=ABCMeta):
             'uid': encode_uid(self.user.pk),
             'token': self.token_generator.make_token(self.user),
             'protocol': self.protocol,
-            'url': self.action_url
         }
 
     @classmethod
@@ -56,41 +55,55 @@ class UserEmailFactoryBase(metaclass=ABCMeta):
             protocol='https' if request.is_secure() else 'http',
         )
 
-    def send(self):
+    def render_mail(self):
         context = self.get_context()
-        subject = loader.render_to_string(self.subject_template_name, context)
+        subject = loader.render_to_string(self.subject_template, context)
         subject = ''.join(subject.splitlines())
 
-        plain_body = loader.render_to_string(self.plain_body_template_name, context)
+        plain_body = loader.render_to_string(self.plain_body_template, context)
         message = {
             'subject': subject,
             'message': plain_body,
             'from_email': self.from_email,
-            'email': [self.user.email],
         }
+        if self.html_body_template:
+            message['html_message'] = loader.render_to_string(self.html_body_template, context)
+        return message
+
+    def send(self):
+        message = self.render_mail()
         if hasattr(self.user, 'email_user'):
             self.user.email_user(**message)
         else:
+            message['email'] = [self.user.email]
             send_mail(**message)
 
 
-class UserActivationEmail(UserEmailFactoryBase):
+class UserEmailUrlMixin(object):
+
+    def get_context(self):
+        context = super(UserEmailUrlMixin, self).get_context()
+        context['url'] = self.action_url.format(**context)
+        return context
+
+
+class UserActivationEmail(UserEmailUrlMixin, UserEmailFactoryBase):
     @property
-    def html_body_template_name(self):
+    def html_body_template(self):
         return None
 
-    subject_template_name = 'users/activation_email_subject.txt'
-    plain_body_template_name = 'users/activation_email_body.txt'
+    subject_template = 'users/activation_email_subject.txt'
+    plain_body_template = 'users/activation_email_body.txt'
     action_url = 'auth/account/activate/?uid={uid}&token={token}'
 
 
-class UserPasswordResetEmail(UserEmailFactoryBase):
+class UserPasswordResetEmail(UserEmailUrlMixin, UserEmailFactoryBase):
     @property
-    def html_body_template_name(self):
+    def html_body_template(self):
         return None
 
-    subject_template_name = 'users/password_reset_email_subject.txt'
-    plain_body_template_name = 'users/password_reset_email_body.txt'
+    subject_template = 'users/password_reset_email_subject.txt'
+    plain_body_template = 'users/password_reset_email_body.txt'
     action_url = 'auth/password/reset/confirm/?uid={uid}&token={token}'
 
 
@@ -100,8 +113,8 @@ class UserConfirmationEmail(UserEmailFactoryBase):
         return None
 
     @property
-    def html_body_template_name(self):
+    def html_body_template(self):
         return None
 
-    subject_template_name = 'users/confirmation_email_subject.txt'
-    plain_body_template_name = 'users/confirmation_email_body.txt'
+    subject_template = 'users/confirmation_email_subject.txt'
+    plain_body_template = 'users/confirmation_email_body.txt'
