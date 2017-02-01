@@ -33,7 +33,7 @@ class LoginViewTestCase(TestCase):
                                     })
         self.assertEquals(response.status_code, 401)
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertEqual(response.data['message'], consts.INACTIVE_ACCOUNT)
+        self.assertEqual(response.data['detail'], consts.INACTIVE_ACCOUNT)
 
     def test_fail_incorrect_credentials(self):
         user = self.active_user_factory.create()
@@ -42,14 +42,14 @@ class LoginViewTestCase(TestCase):
 
         self.assertEquals(response.status_code, 400)
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertEqual(response.data['message'], consts.INVALID_CREDENTIALS)
+        self.assertEqual(response.data['detail'], consts.INVALID_CREDENTIALS)
 
         response = self.client.post(path=self.login_path,
                                     data={'password': 'password'})
 
         self.assertEquals(response.status_code, 400)
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertEqual(response.data['message'], consts.INVALID_CREDENTIALS)
+        self.assertEqual(response.data['detail'], consts.INVALID_CREDENTIALS)
 
 
 class LogoutViewTestCase(TestCase):

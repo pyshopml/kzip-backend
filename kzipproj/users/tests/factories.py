@@ -42,4 +42,5 @@ class PathAPIRequestFactory(APIRequestFactory):
 
     def post(self, path=None, data=None, format=None, content_type=None, **extra):
             path = path or self.path
-            return super(PathAPIRequestFactory, self).post(self, path, data=None, format=None, content_type=None, **extra)
+            return super(PathAPIRequestFactory, self).post(path, data, format,
+                                                           content_type, **extra)

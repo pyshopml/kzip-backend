@@ -9,6 +9,13 @@ from ..utils import utils
 
 
 class UserEmailBaseTestCase(TestCase):
+    """
+        Test UserEmailFactoryBase
+        :raises
+        Can't instantiate abstract class UserEmailFactoryBase with abstract methods action_url,
+        html_body_template, plain_body_template, subject_template
+    """
+
     def setUp(self):
         self.request_factory = PathAPIRequestFactory(path='/')
         self.user = UserFactoryBase.create()
@@ -22,6 +29,17 @@ class UserEmailBaseTestCase(TestCase):
 
 
 class ActivationAndCommonEmailTestCase(TestCase):
+    """
+        Test ActivationEmailFactory
+        Test Common methods from UserEmailFactoryBase
+        :methods
+            build()
+            get_context()
+            send()
+        UserActivationEmail tests
+            check activation url
+            check url in email
+    """
     def setUp(self):
         self.request_factory = PathAPIRequestFactory(path='/')
         self.user = UserFactoryBase.create()
@@ -80,6 +98,11 @@ class ActivationAndCommonEmailTestCase(TestCase):
 
 
 class PasswordResetEmailTestCase(TestCase):
+    """
+        UserActivationEmail tests
+            check reset url
+            check url in email
+    """
     def setUp(self):
         self.request_factory = PathAPIRequestFactory(path='/')
         self.user = UserFactoryBase.create()
@@ -104,6 +127,12 @@ class PasswordResetEmailTestCase(TestCase):
 
 
 class ConfirmationEmailTestCase(TestCase):
+    """
+        UserConfirmationEmail
+        check email body
+        check email subject
+    """
+
     def setUp(self):
         self.request_factory = PathAPIRequestFactory(path='/')
         self.user = UserFactoryBase.create()

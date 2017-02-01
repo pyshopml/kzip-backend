@@ -111,7 +111,9 @@ class ActivationView(GenericAPIView):
         user.save()
         email = UserConfirmationEmail.build(self.request, serializer.user)
         email.send()
-        return response.Response(status=status.HTTP_204_NO_CONTENT)
+        return response.Response({
+                'detail': consts.ACTIVATION_SUCCESS
+            }, status=status.HTTP_202_ACCEPTED)
 
 
 class Login(GenericAPIView):
@@ -140,7 +142,7 @@ class Login(GenericAPIView):
                 user = authenticate(email=email, password=password)
             else:
                 return response.Response({
-                    'message': consts.INACTIVE_ACCOUNT
+                    'detail': consts.INACTIVE_ACCOUNT
                 }, status=status.HTTP_401_UNAUTHORIZED)
         except ExtUser.DoesNotExist:
             user = None
@@ -151,7 +153,7 @@ class Login(GenericAPIView):
             return response.Response(serializer.data)
         else:
             return response.Response({
-                'message': consts.INVALID_CREDENTIALS
+                'detail': consts.INVALID_CREDENTIALS
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
