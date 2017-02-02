@@ -59,11 +59,12 @@ class PasswdResetSerializer(serializers.Serializer):
         'email_not_found': consts.EMAIL_NOT_FOUND
     }
 
-    def validate_email(self, value):
-        if not self.context['view'].get_user(value):
+    def validate_email(self, email):
+        try:
+            ExtUser.objects.get(email=email)
+            return email
+        except ExtUser.DoesNotExist:
             raise serializers.ValidationError(self.error_messages['email_not_found'])
-
-        return value
 
     def create(self, validated_data):
         pass

@@ -50,17 +50,22 @@ class PasswordReset(GenericAPIView):
     serializer_class = PasswdResetSerializer
     permission_classes = (AllowAny,)
 
+    def get(self, request):
+        serializer = self.get_serializer(data=request.GET)
+        return self._action(serializer)
+
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
+        return self._action(serializer)
+
+    def _action(self, serializer):
         serializer.is_valid(raise_exception=True)
-        user = self.get_user(serializer.data['email'])
+        user = ExtUser.objects.get(email=serializer.data['email'])
         email = UserPasswordResetEmail.build(self.request, user)
         email.send()
-        return response.Response(status=status.HTTP_204_NO_CONTENT)
-
-    def get_user(self, email):
-        user = ExtUser.objects.get(email=email)
-        return user
+        return response.Response({
+            'detail': consts.RESET_EMAIL_SENT
+        }, status=status.HTTP_200_OK)
 
 
 class PasswordResetConfirmView(GenericAPIView):
@@ -112,8 +117,8 @@ class ActivationView(GenericAPIView):
         email = UserConfirmationEmail.build(self.request, serializer.user)
         email.send()
         return response.Response({
-                'detail': consts.ACTIVATION_SUCCESS
-            }, status=status.HTTP_202_ACCEPTED)
+            'detail': consts.ACTIVATION_SUCCESS
+        }, status=status.HTTP_202_ACCEPTED)
 
 
 class Login(GenericAPIView):

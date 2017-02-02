@@ -32,7 +32,6 @@ class ActivationViewTestCase(TestCase):
         user = UserFactoryBase.create()
         created_user_id = user.pk
         self.assertFalse(user.is_active)
-
         creation_request = self.request_factory.post(data={'email': user.email,
                                                            'password': self.TEST_USERS_PASSWORD,
                                                            })
@@ -86,7 +85,6 @@ class ActivationViewTestCase(TestCase):
         Test ActivationView directly with fail token
         check status code, error message.
         check poperty is_active=false
-
         """
         user = UserFactoryBase.create()
         self.assertFalse(user.is_active)
