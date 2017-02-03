@@ -27,6 +27,7 @@ class UserCreateViewTestCase(TestCase):
                                         'name': user.name,
                                         'password': self.TEST_USERS_PASSWORD
                                     })
+        self.assertEqual(response.status_code, 201)
         created_user = ExtUser.objects.get(email=user.email)
         self.assertTrue(created_user.pk)
 
