@@ -30,28 +30,6 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class PasswordSerializer(serializers.Serializer):
-    new_password = serializers.CharField(style={'input_type': 'password'})
-    re_new_password = serializers.CharField(style={'input_type': 'password'})
-
-    default_error_messages = {
-        'password_mismatch': consts.PASSWORD_MISMATCH,
-    }
-
-    def validate(self, attrs):
-        attrs = super(PasswordSerializer, self).validate(attrs)
-        if attrs['new_password'] != attrs['re_new_password']:
-            raise serializers.ValidationError(self.error_messages['password_mismatch'])
-
-        return attrs
-
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass
-
-
 class PasswdResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -103,8 +81,8 @@ class UidAndTokenSerializer(serializers.Serializer):
         pass
 
 
-class PasswordResetConfirmSerializer(UidAndTokenSerializer, PasswordSerializer):
-    pass
+class PasswordResetConfirmSerializer(UidAndTokenSerializer):
+    new_password = serializers.CharField(style={'input_type': 'password'})
 
 
 class ActivationSerializer(UidAndTokenSerializer):
