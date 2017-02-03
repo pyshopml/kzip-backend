@@ -118,7 +118,7 @@ class PasswordResetConfirmViewTestCase(APITestCase):
         user = ActiveUser.create()
         old_password = ActiveUser.get_test_user_password()
         self.assertTrue(user.check_password(old_password))
-        bad_UID = utils.encode_uid(user.pk+1)
+        bad_UID = utils.encode_uid(user.pk + 1)
         token = default_token_generator.make_token(user)
         new_password = 'Q123456789'
         pasword_reset_url = self.reset_confirm_url.format(uid=bad_UID, token=token)
@@ -129,4 +129,34 @@ class PasswordResetConfirmViewTestCase(APITestCase):
         user = ExtUser.objects.get(email=user.email)
         self.assertTrue(user.check_password(old_password))
         self.assertFalse(user.check_password(new_password))
+
+    def test_ok_send_mail_after_change_password(self):
+        user = ActiveUser.create()
+        old_password = ActiveUser.get_test_user_password()
+        self.assertTrue(user.check_password(old_password))
+        UID = utils.encode_uid(user.pk)
+        token = default_token_generator.make_token(user)
+        new_password = 'Q123456789'
+        pasword_reset_url = self.reset_confirm_url.format(uid=UID, token=token)
+        response = self.client.post(pasword_reset_url, data={'uid': UID,
+                                                             'token': token,
+                                                             'new_password': new_password})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox[0].to), 1)
+        self.assertIn(user.email, mail.outbox[0].to)
+
+    def test_fail_send_mail_after_change_password(self):
+        user = ActiveUser.create()
+        old_password = ActiveUser.get_test_user_password()
+        self.assertTrue(user.check_password(old_password))
+        bad_UID = utils.encode_uid(user.pk + 1)
+        token = default_token_generator.make_token(user)
+        new_password = 'Q123456789'
+        pasword_reset_url = self.reset_confirm_url.format(uid=bad_UID, token=token)
+        response = self.client.post(pasword_reset_url, data={'uid': bad_UID,
+                                                             'token': token,
+                                                             'new_password': new_password})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(len(mail.outbox), 0)
 

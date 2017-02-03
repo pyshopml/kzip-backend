@@ -1,5 +1,7 @@
+from rest_framework import mixins
 from rest_framework import response
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveUpdateAPIView
@@ -32,14 +34,21 @@ class UserCreate(CreateAPIView):
         email.send()
 
 
-class UserDetail(RetrieveUpdateAPIView):
+
+
+class UserDetail(mixins.RetrieveModelMixin,
+                 mixins.UpdateModelMixin,
+                 mixins.ListModelMixin,
+                 viewsets.GenericViewSet):
     """
     View, Update User
     """
     queryset = ExtUser.objects.all()
     serializer_class = UserSerializer
     authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsSelfOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsSelfOrReadOnly,)
+
+
 
 
 class PasswordReset(GenericAPIView):
@@ -51,7 +60,7 @@ class PasswordReset(GenericAPIView):
     permission_classes = (AllowAny,)
 
     def get(self, request):
-        serializer = self.get_serializer(data=request.GET)
+        serializer = self.get_serializer(data=request.query_params)
         return self._action(serializer)
 
     def post(self, request):
@@ -77,7 +86,7 @@ class PasswordResetConfirmView(GenericAPIView):
     token_generator = default_token_generator
 
     def get(self, request, *args, **kwargs):
-        serializer = UidAndTokenSerializer(data=request.GET)
+        serializer = UidAndTokenSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         return response.Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -101,7 +110,7 @@ class ActivationView(GenericAPIView):
     token_generator = default_token_generator
 
     def get(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.GET)
+        serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         return self._action(serializer)
 
@@ -137,7 +146,7 @@ class Login(GenericAPIView):
         return response.Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        data = request.POST
+        data = request.data
         email = data.get('email', None)
         password = data.get('password', None)
 
